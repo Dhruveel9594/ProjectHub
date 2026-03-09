@@ -1,30 +1,24 @@
-package com.example.ProjectHub.Service.UserService;
+package com.example.ProjectHub.Service;
 
-import com.example.ProjectHub.Model.User;
-import com.example.ProjectHub.Repository.UserRepo.UserRepo;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.ProjectHub.Repository.UserRepository;
+import com.example.ProjectHub.entity.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    UserRepo userRepo;
+    private final UserRepository userRepository;
 
-    public List<User> getUsers() {
-        return userRepo.findAll();
+    public User registerUser(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email already exists!");
+        }
+        return userRepository.save(user);
     }
 
-    public User getUserById(int id){
-        return userRepo.findById(id).orElse(null);
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
-
-    public User userRegistration(User user) {
-        return userRepo.save(user);
-    }
-
-
 }
