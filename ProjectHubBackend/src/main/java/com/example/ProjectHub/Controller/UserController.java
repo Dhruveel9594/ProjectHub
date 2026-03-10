@@ -1,7 +1,13 @@
 package com.example.ProjectHub.Controller;
 
 import com.example.ProjectHub.Service.UserService;
+import com.example.ProjectHub.dto.AuthResponse;
+import com.example.ProjectHub.dto.LoginRequest;
+import com.example.ProjectHub.dto.RegisterRequest;
+import com.example.ProjectHub.dto.RegisterResponse;
 import com.example.ProjectHub.entity.User;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173/")
 @RequestMapping("/api")
 public class UserController {
 
@@ -19,38 +24,63 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/users")
-    public List<User> Home(){
+    public List<User> home() {
         return userService.getAllUsers();
     }
 
-    @PostMapping("/auth/register")
-    public ResponseEntity<?> register( @RequestBody User user){
-//        //1:get user details from frontend
-//        //2:validation - not empty
-//        //3:check if user for already exists: username, email
-//        //4:check for profileImage
-//        //5:upload them to cloudinary
-//        //6:create user object - create entry in db
-//        //7:remove password and refresh token from response
-//        //8:check for user creation
-//        //9:return res
-//
-        User savedUser = userService.registration(user);
 
-        return ResponseEntity.status(201).body(savedUser);
+    @PostMapping("/auth/register")
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+
+        RegisterResponse response = userService.registration(request);
+
+        //  Returns RegisterResponse DTO (id, username, email only).
+        // Before: returned the full User entity including hashed password.
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
 
     @PostMapping("/auth/login")
-    public ResponseEntity<Map<String,String>> login(@RequestBody User user){
-        Map<String , String> tokens = userService.verify(user);
-        return ResponseEntity.ok(tokens);
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        AuthResponse response = userService.verify(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/auth/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request, @RequestBody Map<String, String> body) {
+
+        String accessToken = extractToken(request);
+        String refreshToken = body.get("refreshToken");
+
+        userService.logout(accessToken, refreshToken);
+        return ResponseEntity.ok("Logged out successfully");
     }
 
 
-    @DeleteMapping("/user/{id}")
-    public String deleteUser(@PathVariable int id){
-        return userService.deleteUser(id);
+
+
+
+    // Client sends: { "refreshToken": "<refreshToken>" }
+    // Client gets back: new accessToken + new refreshToken
+    // Call this when your frontend gets a 401 on any request.
+    // If this also returns 401, the user must log in again.
+    @PostMapping("/auth/refresh")
+    public ResponseEntity<AuthResponse> refresh(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+        AuthResponse response = userService.refresh(refreshToken);
+        return ResponseEntity.ok(response);
     }
 
 
+
+
+    private String extractToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        return null;
+    }
 }

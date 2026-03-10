@@ -4,12 +4,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Date;
@@ -20,7 +20,14 @@ import java.util.function.Function;
 @Service
 public class JWTService {
 
-    private String secretKey = "mysecretkeymysecretkeymysecretkey12345";
+    @Value("${app.jwt.secret}")
+    private String secretKey;
+
+    @Value("${app.jwt.access-token-expiry}")
+    private long accessTokenExpiry;
+
+    @Value("${app.jwt.refresh-token-expiry}")
+    private long refreshTokenExpiry;
 
     private SecretKey getKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -28,11 +35,15 @@ public class JWTService {
     }
 
     public String generateAccessToken(String username) {
-        return buildToken(username, 1000 * 60 * 15);
+        return buildToken(username, accessTokenExpiry);
     }
 
     public String generateRefreshToken(String username) {
-        return buildToken(username, 1000 * 60 * 60 * 24 * 7);
+        return buildToken(username, refreshTokenExpiry);
+    }
+
+    public long getRefreshTokenExpiry() {
+        return refreshTokenExpiry;
     }
 
 
@@ -66,10 +77,10 @@ public class JWTService {
 
 
     public String extractUsername(String token) {
-        return extraxtClaim(token , Claims::getSubject);
+        return extractClaim(token , Claims::getSubject);
     }
 
-    private <T> T extraxtClaim(String token, Function<Claims, T> claimResolver) {
+    private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
         final Claims claims = extractAllClaims(token);
         return claimResolver.apply(claims); 
 
@@ -92,8 +103,8 @@ public class JWTService {
         return extractExpiration(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
-        return extraxtClaim(token , Claims::getExpiration);
+    public Date extractExpiration(String token) {
+        return extractClaim(token , Claims::getExpiration);
     }
 
 

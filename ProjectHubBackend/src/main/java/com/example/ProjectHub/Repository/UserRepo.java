@@ -5,7 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepo extends JpaRepository<User,Integer> {
+public interface UserRepo extends JpaRepository<User, Integer> {
 
-    public User findByUsername(String username);
+    //  used for login and loadUserByUsername
+    User findByUsername(String username);
+
+    // need for duplicate email check during registration.
+    User findByEmail(String email);
 }
