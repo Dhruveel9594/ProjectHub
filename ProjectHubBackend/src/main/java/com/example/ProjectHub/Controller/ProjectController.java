@@ -1,6 +1,6 @@
-package com.example.ProjectHub.Controller;
+package com.example.ProjectHub.controller;
 
-import com.example.ProjectHub.Service.ProjectService;
+import com.example.ProjectHub.service.ProjectService;
 import com.example.ProjectHub.entity.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

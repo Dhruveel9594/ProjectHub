@@ -1,10 +1,12 @@
-package com.example.ProjectHub.Service;
+package com.example.ProjectHub.service;
 
-import com.example.ProjectHub.Repository.ProjectRepo;
-import com.example.ProjectHub.Repository.UserRepo;
+import com.example.ProjectHub.repository.ProjectRepo;
+import com.example.ProjectHub.repository.UserRepo;
 import com.example.ProjectHub.entity.Project;
 import com.example.ProjectHub.entity.User;
+import com.example.ProjectHub.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,8 +22,8 @@ public class ProjectService {
     private UserRepo userRepo;
 
     public Project createProject(Project project, String username) {
-        User user = userRepo.findByUsername(username);
-        if (user == null) throw new RuntimeException("User not found: " + username);
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         project.setStudent(user);
         project.setCreatedAt(LocalDateTime.now());
         return projectRepo.save(project);
@@ -41,7 +43,8 @@ public class ProjectService {
     }
 
     public List<Project> getProjectsByUser(String username) {
-        User user = userRepo.findByUsername(username);
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         if (user == null) throw new RuntimeException("User not found: " + username);
         return projectRepo.findByStudentUsername(username);
     }

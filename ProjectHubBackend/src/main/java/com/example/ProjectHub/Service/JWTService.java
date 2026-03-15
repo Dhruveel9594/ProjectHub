@@ -1,9 +1,10 @@
-package com.example.ProjectHub.Service;
+package com.example.ProjectHub.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class JWTService {
     @Value("${app.jwt.access-token-expiry}")
     private long accessTokenExpiry;
 
+    @Getter
     @Value("${app.jwt.refresh-token-expiry}")
     private long refreshTokenExpiry;
 
@@ -40,10 +42,6 @@ public class JWTService {
 
     public String generateRefreshToken(String username) {
         return buildToken(username, refreshTokenExpiry);
-    }
-
-    public long getRefreshTokenExpiry() {
-        return refreshTokenExpiry;
     }
 
 

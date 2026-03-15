@@ -1,23 +1,26 @@
-package com.example.ProjectHub.Service;
+package com.example.ProjectHub.service;
 
-import com.example.ProjectHub.Repository.RefreshTokenRepo;
-import com.example.ProjectHub.Repository.UserRepo;
-import com.example.ProjectHub.dto.AuthResponse;
-import com.example.ProjectHub.dto.LoginRequest;
-import com.example.ProjectHub.dto.RegisterRequest;
-import com.example.ProjectHub.dto.RegisterResponse;
+import com.example.ProjectHub.dto.*;
+import com.example.ProjectHub.repository.RefreshTokenRepo;
+import com.example.ProjectHub.repository.UserRepo;
 import com.example.ProjectHub.entity.RefreshToken;
 import com.example.ProjectHub.entity.User;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -41,30 +44,34 @@ public class UserService {
     @Autowired
     private LoginAttemptService loginAttemptService;
 
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
 
 
     @Transactional
     public RegisterResponse registration(RegisterRequest request) {
 
 
-        if (userRepo.findByUsername(request.getUsername()) != null) {
+        if (userRepo.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("Username already taken");
 
         }
 
         // Duplicate email check — new, wasn't there before at all
-        if (userRepo.findByEmail(request.getEmail()) != null) {
+        if (userRepo.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered");
         }
 
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
-        user.setPassword(encoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setCreatedAt(LocalDateTime.now());
+        user.setRole(request.getRole());
 
         User saved = userRepo.save(user);
-        return new RegisterResponse(saved.getId(), saved.getUsername(), saved.getEmail());
+        return new RegisterResponse(saved.getId(), saved.getUsername(), saved.getEmail(),saved.getRole());
     }
 
 
@@ -102,7 +109,8 @@ public class UserService {
         Instant expiresAt = Instant.now().plusMillis(jwtService.getRefreshTokenExpiry());
         refreshTokenRepo.save(new RefreshToken(refreshToken, request.getUsername(), expiresAt));
 
-        User user = userRepo.findByUsername(request.getUsername());
+        User user = userRepo.findByUsername(request.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.getUsername()));
         return new AuthResponse(accessToken, refreshToken, user.getUsername(), user.getEmail());
     }
 
@@ -149,13 +157,37 @@ public class UserService {
         Instant expiresAt = Instant.now().plusMillis(jwtService.getRefreshTokenExpiry());
         refreshTokenRepo.save(new RefreshToken(newRefreshToken, username, expiresAt));
 
-        User user = userRepo.findByUsername(username);
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         return new AuthResponse(newAccessToken, newRefreshToken, user.getUsername(), user.getEmail());
     }
 
 
-    public List<User> getAllUsers() {
-        return userRepo.findAll();
+    public UpdateResponse getUserById(long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+
+        return new UpdateResponse(user.getName(), user.getBio(), user.getCollegeName(), user.getYear(), user.getBranch());
     }
 
+
+    public UpdateResponse updateUser(long id, @Valid UpdateUserRequest request) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!user.getUsername().equals(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to update this profile");
+        }
+
+        user.setName(request.getName());
+        user.setBio(request.getBio());
+        user.setCollegeName(request.getCollegeName());
+        user.setYear(request.getYear());
+        user.setBranch(request.getBranch());
+
+        User saved = userRepo.save(user);
+        return new UpdateResponse(saved.getName(), saved.getBio(), saved.getCollegeName(), saved.getYear(), saved.getBranch());
+    }
 }

@@ -1,12 +1,13 @@
-package com.example.ProjectHub.Service;
+package com.example.ProjectHub.service;
 
-import com.example.ProjectHub.Repository.ProjectRepo;
-import com.example.ProjectHub.Repository.ReferenceRepo;
-import com.example.ProjectHub.Repository.UserRepo;
+import com.example.ProjectHub.repository.ProjectRepo;
+import com.example.ProjectHub.repository.ReferenceRepo;
+import com.example.ProjectHub.repository.UserRepo;
 import com.example.ProjectHub.entity.Project;
 import com.example.ProjectHub.entity.Reference;
 import com.example.ProjectHub.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,8 +30,8 @@ public class ReferenceService {
         Project project = projectRepo.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
 
-        User givenBy = userRepo.findByUsername(username);
-        if (givenBy == null) throw new RuntimeException("User not found: " + username);
+        User givenBy = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         reference.setProject(project);
         reference.setGivenBy(givenBy);
@@ -62,8 +63,8 @@ public class ReferenceService {
 
     // Get all references given by a user
     public List<Reference> getByUser(String username) {
-        User user = userRepo.findByUsername(username);
-        if (user == null) throw new RuntimeException("User not found: " + username);
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         List<Reference> refs = referenceRepo.findByGivenByUsername(username);
         if (refs.isEmpty()) throw new RuntimeException("No references given by: " + username);
         return refs;

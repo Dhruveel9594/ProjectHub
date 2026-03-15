@@ -1,6 +1,8 @@
 package com.example.ProjectHub.entity;
 
 import jakarta.persistence.*;
+import lombok.Setter;
+
 import java.time.Instant;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -22,10 +24,12 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column(nullable = false, unique = true, length = 512)
     private String token;
 
 
+    @Setter
     @Column(nullable = false)
     private String username;
 
@@ -43,10 +47,8 @@ public class RefreshToken {
     public Long getId() { return id; }
 
     public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
 
     public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
 
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
