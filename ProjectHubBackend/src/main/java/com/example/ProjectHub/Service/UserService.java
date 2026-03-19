@@ -1,6 +1,7 @@
 package com.example.ProjectHub.service;
 
 import com.example.ProjectHub.dto.*;
+import com.example.ProjectHub.entity.Project;
 import com.example.ProjectHub.repository.RefreshTokenRepo;
 import com.example.ProjectHub.repository.UserRepo;
 import com.example.ProjectHub.entity.RefreshToken;
@@ -20,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -28,6 +30,9 @@ public class UserService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private ProjectService projectService;
 
     @Autowired
     private RefreshTokenRepo refreshTokenRepo;
@@ -189,5 +194,23 @@ public class UserService {
 
         User saved = userRepo.save(user);
         return new UpdateResponse(saved.getName(), saved.getBio(), saved.getCollegeName(), saved.getYear(), saved.getBranch());
+    }
+
+    public List<Project> userProjects(long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!user.getUsername().equals(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to see");
+        }
+
+        List<Project> allProjects = projectService.getProjectsByUser(user.getUsername());
+        if (allProjects.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No Projects Found");
+        }
+
+        return allProjects;
+
     }
 }
