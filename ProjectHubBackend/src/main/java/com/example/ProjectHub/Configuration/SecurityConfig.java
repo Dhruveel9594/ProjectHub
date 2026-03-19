@@ -1,6 +1,6 @@
-package com.example.ProjectHub.configuration;
+package com.example.ProjectHub.Configuration;
 
-import com.example.ProjectHub.service.MyUserDetailsService;
+import com.example.ProjectHub.Service.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

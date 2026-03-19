@@ -1,20 +1,14 @@
-package com.example.ProjectHub.controller;
+package com.example.ProjectHub.Controller;
 
 
 import com.example.ProjectHub.dto.UpdateResponse;
 import com.example.ProjectHub.dto.UpdateUserRequest;
-import com.example.ProjectHub.entity.Project;
-import com.example.ProjectHub.repository.ProjectRepo;
-import com.example.ProjectHub.service.ProjectService;
-import com.example.ProjectHub.service.UserService;
-import com.example.ProjectHub.entity.User;
+import com.example.ProjectHub.Service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")

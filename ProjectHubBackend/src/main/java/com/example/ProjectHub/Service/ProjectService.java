@@ -1,10 +1,9 @@
-package com.example.ProjectHub.service;
+package com.example.ProjectHub.Service;
 
-import com.example.ProjectHub.repository.ProjectRepo;
-import com.example.ProjectHub.repository.UserRepo;
+import com.example.ProjectHub.Repository.ProjectRepo;
+import com.example.ProjectHub.Repository.UserRepo;
 import com.example.ProjectHub.entity.Project;
 import com.example.ProjectHub.entity.User;
-import com.example.ProjectHub.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

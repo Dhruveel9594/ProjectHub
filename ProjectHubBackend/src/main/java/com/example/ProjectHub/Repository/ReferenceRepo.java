@@ -1,4 +1,4 @@
-package com.example.ProjectHub.repository;
+package com.example.ProjectHub.Repository;
 
 import com.example.ProjectHub.entity.Reference;
 import org.springframework.data.jpa.repository.JpaRepository;

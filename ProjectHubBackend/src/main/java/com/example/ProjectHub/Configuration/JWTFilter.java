@@ -1,8 +1,8 @@
-package com.example.ProjectHub.configuration;
+package com.example.ProjectHub.Configuration;
 
-import com.example.ProjectHub.service.JWTService;
-import com.example.ProjectHub.service.MyUserDetailsService;
-import com.example.ProjectHub.service.TokenBlacklistService;
+import com.example.ProjectHub.Service.JWTService;
+import com.example.ProjectHub.Service.MyUserDetailsService;
+import com.example.ProjectHub.Service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

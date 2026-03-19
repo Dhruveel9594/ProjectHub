@@ -1,4 +1,4 @@
-package com.example.ProjectHub.service;
+package com.example.ProjectHub.Service;
 
 import org.springframework.stereotype.Service;
 

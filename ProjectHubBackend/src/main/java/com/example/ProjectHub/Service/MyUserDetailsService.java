@@ -1,7 +1,7 @@
-package com.example.ProjectHub.service;
+package com.example.ProjectHub.Service;
 
 import com.example.ProjectHub.entity.User;
-import com.example.ProjectHub.repository.UserRepo;
+import com.example.ProjectHub.Repository.UserRepo;
 import com.example.ProjectHub.entity.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

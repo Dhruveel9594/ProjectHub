@@ -1,6 +1,6 @@
-package com.example.ProjectHub.controller;
+package com.example.ProjectHub.Controller;
 
-import com.example.ProjectHub.service.UserService;
+import com.example.ProjectHub.Service.UserService;
 import com.example.ProjectHub.dto.AuthResponse;
 import com.example.ProjectHub.dto.LoginRequest;
 import com.example.ProjectHub.dto.RegisterRequest;

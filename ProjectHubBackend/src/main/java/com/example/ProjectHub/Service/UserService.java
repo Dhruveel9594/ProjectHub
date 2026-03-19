@@ -1,9 +1,9 @@
-package com.example.ProjectHub.service;
+package com.example.ProjectHub.Service;
 
 import com.example.ProjectHub.dto.*;
 import com.example.ProjectHub.entity.Project;
-import com.example.ProjectHub.repository.RefreshTokenRepo;
-import com.example.ProjectHub.repository.UserRepo;
+import com.example.ProjectHub.Repository.RefreshTokenRepo;
+import com.example.ProjectHub.Repository.UserRepo;
 import com.example.ProjectHub.entity.RefreshToken;
 import com.example.ProjectHub.entity.User;
 import jakarta.validation.Valid;
@@ -22,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service

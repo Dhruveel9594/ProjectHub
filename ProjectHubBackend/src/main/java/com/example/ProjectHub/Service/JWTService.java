@@ -1,4 +1,4 @@
-package com.example.ProjectHub.service;
+package com.example.ProjectHub.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
