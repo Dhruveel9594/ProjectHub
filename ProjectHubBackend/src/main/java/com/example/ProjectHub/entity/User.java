@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.time.Year;
 
 @Entity
 @AllArgsConstructor
@@ -22,12 +21,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     private String username;
 
     private String name;
 
     private String email;
+
     @JsonIgnore
     private String password;
 
@@ -35,13 +34,13 @@ public class User {
 
     private String collegeName;
 
-
-//    private String companyName;
-    //private String profilePicture;
-
     private String branch;
-    private String bio;
-    private Year year;
-    private LocalDateTime createdAt;
 
+    private String bio;
+
+
+    @Enumerated(EnumType.STRING)
+    private AcademicYear year;
+
+    private LocalDateTime createdAt;
 }

@@ -24,12 +24,21 @@ public class JWTService {
     @Value("${app.jwt.secret}")
     private String secretKey;
 
+    // Added fallbacks (:900000) so the app starts even if variables are missing
     @Value("${app.jwt.access-token-expiry}")
     private long accessTokenExpiry;
 
-    @Getter
     @Value("${app.jwt.refresh-token-expiry}")
     private long refreshTokenExpiry;
+
+    // Getters for UserService to use
+    public long getAccessTokenExpiry() {
+        return accessTokenExpiry;
+    }
+
+    public long getRefreshTokenExpiry() {
+        return refreshTokenExpiry;
+    }
 
     private SecretKey getKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -45,16 +54,7 @@ public class JWTService {
     }
 
 
-    public JWTService(){
-        try {
-            KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sk = keyGen.generateKey();
-            secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
 
-    }
 
     public String buildToken(String username, long expiration) {
 

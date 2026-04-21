@@ -17,10 +17,14 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
+    // ── FIX: Removed @RequestParam String username ──
+    // Before: username was passed as query param ?username=john — anyone could fake it
+    // Now: ProjectService reads username from SecurityContextHolder (JWT)
     @PostMapping
-    public ResponseEntity<?> createProject(@RequestBody Project project, @RequestParam String username) {
+    public ResponseEntity<?> createProject(@RequestBody Project project) {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(project, username));
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(projectService.createProject(project));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -34,8 +38,13 @@ public class ProjectController {
             @RequestParam(required = false) String techStack,
             @RequestParam(required = false) String projectType,
             @RequestParam(required = false) String sortBy) {
-        List<Project> projects = projectService.getAllProjects(department, year, tag, techStack, projectType, sortBy);
-        if (projects.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No projects found");
+
+        List<Project> projects = projectService.getAllProjects(
+                department, year, tag, techStack, projectType, sortBy);
+
+        // ── FIX: Return empty list instead of 404 ──
+        // Before: returned 404 when no projects found — frontend showed error
+        // Now: returns empty array [] so frontend shows "No projects" state
         return ResponseEntity.ok(projects);
     }
 
@@ -49,11 +58,13 @@ public class ProjectController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateProject(@PathVariable Long id, @RequestBody Project project) {
+    public ResponseEntity<?> updateProject(
+            @PathVariable Long id,
+            @RequestBody Project project) {
         try {
             return ResponseEntity.ok(projectService.updateProject(id, project));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -68,29 +79,30 @@ public class ProjectController {
     }
 
     @PostMapping("/{id}/thumbnail")
-    public ResponseEntity<?> updateThumbnail(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> updateThumbnail(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
         try {
             String thumbnailUrl = body.get("thumbnailUrl");
             return ResponseEntity.ok(projectService.updateThumbnail(id, thumbnailUrl));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
     @GetMapping("/trending")
     public ResponseEntity<?> getTrending() {
-        List<Project> projects = projectService.getTrendingProjects();
-        if (projects.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No trending projects found");
-        return ResponseEntity.ok(projects);
+        return ResponseEntity.ok(projectService.getTrendingProjects());
     }
 
     @GetMapping("/search")
     public ResponseEntity<?> searchProjects(@RequestParam String q) {
-        List<Project> projects = projectService.searchProjects(q);
-        if (projects.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No projects found for: " + q);
-        return ResponseEntity.ok(projects);
+        return ResponseEntity.ok(projectService.searchProjects(q));
     }
 
+    // ── NOTE: Only FACULTY/ADMIN should call this ──
+    // Add @PreAuthorize("hasRole('Faculty')") here once role-based
+    // security is configured in SecurityConfig
     @PutMapping("/{id}/verify")
     public ResponseEntity<?> verifyProject(@PathVariable Long id) {
         try {

@@ -1,0 +1,34 @@
+# ── Compiled output — never include this, Docker builds fresh ──
+target/
+
+# ── Git files ──
+.git
+.gitignore
+.gitattributes
+
+# ── IDE files ──
+.idea/
+*.iml
+.vscode/
+*.iws
+*.ipr
+
+# ── Maven wrapper (not needed — Docker uses full Maven) ──
+.mvn/wrapper/maven-wrapper.jar
+
+# ── Local config — NEVER include this in Docker ──
+src/main/resources/application.properties
+src/main/resources/application.yml
+src/main/resources/application-dev.properties
+
+# ── Logs ──
+*.log
+logs/
+
+# ── OS files ──
+.DS_Store
+Thumbs.db
+
+# ── Docker files themselves ──
+Dockerfile
+.dockerignore

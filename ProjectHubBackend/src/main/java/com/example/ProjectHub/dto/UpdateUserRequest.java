@@ -1,31 +1,27 @@
 package com.example.ProjectHub.dto;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import com.example.ProjectHub.entity.AcademicYear;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.Year;
 
 @Getter
 @Setter
 public class UpdateUserRequest {
 
-    @NotNull(message = "Name is required")
+    @NotBlank(message = "Name is required")
     private String name;
 
-    @NotNull(message = "bio is required")
+    // Bio is optional
     private String bio;
 
-    @NotNull(message = "branch is required")
+    @NotBlank(message = "Branch is required")
     private String branch;
 
-    @NotNull(message = "year is required")
-    private Year year;
+    @NotNull(message = "Year is required")
+    private AcademicYear year;
 
-    @NotNull(message = "collegeName is required")
+    @NotBlank(message = "College name is required")
     private String collegeName;
-
 }
-

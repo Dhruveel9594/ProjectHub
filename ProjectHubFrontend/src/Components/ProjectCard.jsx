@@ -1,11 +1,22 @@
+// src/components/ProjectCard.jsx
+// Clicking the card navigates to /projects/:id
+
+import { useNavigate } from "react-router-dom";
+
 export default function ProjectCard({ project }) {
+  const navigate = useNavigate();
 
   const techTags = project.techStack
     ? project.techStack.split(",").map((t) => t.trim())
     : [];
 
   const initials = project.student?.name
-    ? project.student.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? project.student.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "??";
 
   const yearLabel = {
@@ -15,7 +26,7 @@ export default function ProjectCard({ project }) {
 
   const avatarColors = [
     "bg-orange-500", "bg-indigo-500", "bg-cyan-500",
-    "bg-pink-500", "bg-green-500", "bg-purple-500",
+    "bg-pink-500",   "bg-green-500",  "bg-purple-500",
   ];
   const avatarBg =
     avatarColors[(project.student?.name?.charCodeAt(0) ?? 0) % avatarColors.length];
@@ -23,16 +34,20 @@ export default function ProjectCard({ project }) {
   const tagStyles = [
     "bg-indigo-500/15 text-indigo-300",
     "bg-orange-500/15 text-orange-300",
-    "bg-cyan-500/15 text-cyan-300",
-    "bg-green-500/15 text-green-300",
-    "bg-pink-500/15 text-pink-300",
+    "bg-cyan-500/15   text-cyan-300",
+    "bg-green-500/15  text-green-300",
+    "bg-pink-500/15   text-pink-300",
   ];
 
   return (
-    <article className="group bg-[#16161f] border border-white/10 hover:border-indigo-500/40 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)] relative overflow-hidden">
+    <article
+      onClick={() => navigate(`/projects/${project.id}`)}
+      className="group bg-[#16161f] border border-white/10 hover:border-indigo-500/40 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)] relative overflow-hidden"
+    >
+      {/* Top accent line on hover */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-linear-to-r from-orange-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
+      {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <span className="text-xs text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
           {project.department}
@@ -49,27 +64,47 @@ export default function ProjectCard({ project }) {
         </div>
       </div>
 
-      <h3 className="font-bold text-base mb-1 tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
+      {/* Title */}
+      <h3
+        className="font-bold text-base mb-1 tracking-tight group-hover:text-orange-300 transition-colors"
+        style={{ fontFamily: "'Syne', sans-serif" }}
+      >
         {project.title}
       </h3>
 
+      {/* Type */}
       <p className="text-xs text-orange-400 mb-2">{project.projectType}</p>
 
+      {/* Description */}
       <p className="text-sm text-gray-400 leading-relaxed mb-4 line-clamp-2">
         {project.description}
       </p>
 
+      {/* Tags */}
       <div className="flex flex-wrap gap-1.5 mb-4">
-        {techTags.map((tech, index) => (
-          <span key={tech} className={`text-xs font-medium px-2.5 py-1 rounded-full ${tagStyles[index % tagStyles.length]}`}>
+        {techTags.slice(0, 3).map((tech, index) => (
+          <span
+            key={tech}
+            className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+              tagStyles[index % tagStyles.length]
+            }`}
+          >
             {tech}
           </span>
         ))}
+        {techTags.length > 3 && (
+          <span className="text-xs text-gray-500 px-2.5 py-1">
+            +{techTags.length - 3} more
+          </span>
+        )}
       </div>
 
+      {/* Footer */}
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
         <div className="flex items-center gap-2 text-sm text-gray-400">
-          <div className={`w-6 h-6 rounded-full ${avatarBg} flex items-center justify-center text-white text-[10px] font-bold`}>
+          <div
+            className={`w-6 h-6 rounded-full ${avatarBg} flex items-center justify-center text-white text-[10px] font-bold`}
+          >
             {initials}
           </div>
           {project.student?.name ?? "Unknown"}

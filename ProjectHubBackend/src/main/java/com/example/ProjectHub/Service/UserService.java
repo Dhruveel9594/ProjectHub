@@ -51,18 +51,16 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-
-
+    // ─────────────────────────────────────────────────────────
+    //  REGISTER
+    // ─────────────────────────────────────────────────────────
     @Transactional
     public RegisterResponse registration(RegisterRequest request) {
 
-
         if (userRepo.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("Username already taken");
-
         }
 
-        // Duplicate email check — new, wasn't there before at all
         if (userRepo.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered");
         }
@@ -74,17 +72,31 @@ public class UserService {
         user.setCreatedAt(LocalDateTime.now());
         user.setRole(request.getRole());
 
+        // ── FIX: Save all profile fields on registration ──
+        // Before: name, bio, branch, year, collegeName were never set
+        // so profile page showed empty fields after register
+        user.setName(request.getName());
+        user.setBio(request.getBio());
+        user.setBranch(request.getBranch());
+        user.setYear(request.getYear());
+        user.setCollegeName(request.getCollegeName());
+
         User saved = userRepo.save(user);
-        return new RegisterResponse(saved.getId(), saved.getUsername(), saved.getEmail(),saved.getRole());
+        return new RegisterResponse(
+                saved.getId(),
+                saved.getUsername(),
+                saved.getEmail(),
+                saved.getRole(),
+                saved.getName()
+        );
     }
 
-
-
+    // ─────────────────────────────────────────────────────────
+    //  LOGIN
+    // ─────────────────────────────────────────────────────────
     @Transactional
     public AuthResponse verify(LoginRequest request) {
 
-        // check — new, wasn't there before.
-        // Blocks the username for 15 mins after 5 failed attempts.
         if (loginAttemptService.isBlocked(request.getUsername())) {
             throw new RuntimeException("Account temporarily locked. Try again in 15 minutes.");
         }
@@ -97,28 +109,36 @@ public class UserService {
                     )
             );
         } catch (BadCredentialsException e) {
-
             loginAttemptService.recordFailure(request.getUsername());
             throw new RuntimeException("Invalid username or password");
         }
 
-        // Login succeeded — clear any recorded failures
         loginAttemptService.clearFailures(request.getUsername());
 
-        // Generate both tokens
-        String accessToken = jwtService.generateAccessToken(request.getUsername());
+        String accessToken  = jwtService.generateAccessToken(request.getUsername());
         String refreshToken = jwtService.generateRefreshToken(request.getUsername());
 
-        // Save refresh token to DB.
         Instant expiresAt = Instant.now().plusMillis(jwtService.getRefreshTokenExpiry());
         refreshTokenRepo.save(new RefreshToken(refreshToken, request.getUsername(), expiresAt));
 
         User user = userRepo.findByUsername(request.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.getUsername()));
-        return new AuthResponse(accessToken, refreshToken, user.getUsername(), user.getEmail());
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        // ── FIX: Added id and role to AuthResponse ──
+        // Before: id was missing so frontend couldn't call /api/user/{id}
+        return new AuthResponse(
+                user.getId(),
+                accessToken,
+                refreshToken,
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole()
+        );
     }
 
-
+    // ─────────────────────────────────────────────────────────
+    //  LOGOUT
+    // ─────────────────────────────────────────────────────────
     @Transactional
     public void logout(String accessToken, String refreshToken) {
         if (accessToken != null) {
@@ -132,8 +152,9 @@ public class UserService {
         }
     }
 
-
-
+    // ─────────────────────────────────────────────────────────
+    //  REFRESH TOKEN
+    // ─────────────────────────────────────────────────────────
     @Transactional
     public AuthResponse refresh(String refreshTokenStr) {
         Optional<RefreshToken> stored = refreshTokenRepo.findByToken(refreshTokenStr);
@@ -150,39 +171,64 @@ public class UserService {
         }
 
         String username = refreshToken.getUsername();
-
-        // Delete old token (rotation — one-time use)
         refreshTokenRepo.delete(refreshToken);
 
-        // Issue new tokens
-        String newAccessToken = jwtService.generateAccessToken(username);
+        String newAccessToken  = jwtService.generateAccessToken(username);
         String newRefreshToken = jwtService.generateRefreshToken(username);
 
         Instant expiresAt = Instant.now().plusMillis(jwtService.getRefreshTokenExpiry());
         refreshTokenRepo.save(new RefreshToken(newRefreshToken, username, expiresAt));
 
         User user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        return new AuthResponse(newAccessToken, newRefreshToken, user.getUsername(), user.getEmail());
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return new AuthResponse(
+                user.getId(),
+                newAccessToken,
+                newRefreshToken,
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole()
+        );
     }
 
-
-    public UpdateResponse getUserById(long id) {
+    // ─────────────────────────────────────────────────────────
+    //  GET USER BY ID
+    // ─────────────────────────────────────────────────────────
+    public UpdateResponse getUserById(Long id) {
         User user = userRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found with id: " + id));
 
-        return new UpdateResponse(user.getName(), user.getBio(), user.getCollegeName(), user.getYear(), user.getBranch());
+        // ── FIX: Correct constructor parameter order ──
+        // Before: new UpdateResponse(name, bio, collegeName, year, branch) — WRONG ORDER
+        return new UpdateResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole(),
+                user.getName(),
+                user.getBio(),
+                user.getBranch(),
+                user.getYear(),
+                user.getCollegeName()
+        );
     }
 
-
-    public UpdateResponse updateUser(long id, @Valid UpdateUserRequest request) {
+    // ─────────────────────────────────────────────────────────
+    //  UPDATE USER
+    // ─────────────────────────────────────────────────────────
+    @Transactional
+    public UpdateResponse updateUser(Long id, @Valid UpdateUserRequest request) {
         User user = userRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found with id: " + id));
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (!user.getUsername().equals(username)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to update this profile");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "You are not allowed to update this profile");
         }
 
         user.setName(request.getName());
@@ -192,24 +238,34 @@ public class UserService {
         user.setBranch(request.getBranch());
 
         User saved = userRepo.save(user);
-        return new UpdateResponse(saved.getName(), saved.getBio(), saved.getCollegeName(), saved.getYear(), saved.getBranch());
+
+        return new UpdateResponse(
+                saved.getId(),
+                saved.getUsername(),
+                saved.getEmail(),
+                saved.getRole(),
+                saved.getName(),
+                saved.getBio(),
+                saved.getBranch(),
+                saved.getYear(),
+                saved.getCollegeName()
+        );
     }
 
-    public List<Project> userProjects(long id) {
+    // ─────────────────────────────────────────────────────────
+    //  GET USER'S PROJECTS
+    // ─────────────────────────────────────────────────────────
+    public List<Project> userProjects(Long id) {
         User user = userRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found with id: " + id));
+
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (!user.getUsername().equals(username)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to see");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
-        List<Project> allProjects = projectService.getProjectsByUser(user.getUsername());
-        if (allProjects.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No Projects Found");
-        }
-
-        return allProjects;
-
+        return projectService.getProjectsByUser(user.getUsername());
     }
 }

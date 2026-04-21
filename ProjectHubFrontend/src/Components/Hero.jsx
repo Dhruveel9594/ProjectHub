@@ -1,12 +1,15 @@
 import { FLOATING_TAGS } from "../data/landingData";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Hero() {
+  const navigate = useNavigate();
   return (
     <section className="relative px-12 pt-24 pb-20 overflow-hidden">
 
       {/* Background Glows */}
-      <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-175 h-[400px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-16 -right-24 w-[400px] h-[300px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-175 h-100 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-16 -right-24 w-100 h-75 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Live Badge */}
       <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-medium px-4 py-1.5 rounded-full mb-7">
@@ -38,10 +41,16 @@ export default function Hero() {
 
       {/* CTA Buttons */}
       <div className="flex gap-4 items-center">
-        <button className="bg-orange-500 hover:bg-orange-400 text-white font-semibold px-8 py-3.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(249,115,22,0.35)]">
+        <button
+          onClick={() => navigate("/browse")}
+          className="bg-orange-500 hover:bg-orange-400 ... group-hover:bg-orange-400/90 text-white text-sm font-medium px-5 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer"
+        >
           Explore Projects →
         </button>
-        <button className="border border-white/15 hover:border-white/30 hover:bg-white/5 text-white font-medium px-7 py-3.5 rounded-xl transition-all duration-200">
+        <button
+          onClick={() => navigate("/create-project")}
+          className="border border-white/15 ... hover:border-orange-500/50 text-white text-sm font-medium px-5 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer"
+        >
           Upload Your Project
         </button>
       </div>

@@ -1,5 +1,6 @@
 import { HOW_IT_WORKS } from "../data/landingData";
 import SectionHeader from "./SectionHeader";
+
 export default function HowItWorks() {
   return (
     <section className="px-12 pb-16">
