@@ -15,7 +15,7 @@ export default function StatsBar() {
   useEffect(() => {
     // Fetch projects and derive counts from the response
     axios
-      .get("http://localhost:8090/api/projects")
+      .get(`${import.meta.env.VITE_API_BASE_URL}/projects`)
       .then((res) => {
         const projects = res.data;
 

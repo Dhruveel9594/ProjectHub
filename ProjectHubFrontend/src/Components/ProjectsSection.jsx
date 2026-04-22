@@ -10,12 +10,11 @@ export default function ProjectsSection() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8090/api/projects")
+      .get(`${import.meta.env.VITE_API_BASE_URL}/projects`)
       .then((res) => setProjects(res.data))
       .catch(() => setError("Failed to load projects."))
       .finally(() => setLoading(false));
-  }, []);
-
+}, []);
   return (
     <section className="px-12 pb-16">
       <SectionHeader
