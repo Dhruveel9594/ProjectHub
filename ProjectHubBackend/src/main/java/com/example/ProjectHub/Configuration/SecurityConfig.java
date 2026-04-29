@@ -36,7 +36,7 @@ public class SecurityConfig {
     // Reads CORS_ALLOWED_ORIGINS env var
     // Local default: http://localhost:5173
     // Production: set to your Vercel URL in Render env vars
-    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
 
     @Bean
@@ -69,6 +69,7 @@ public class SecurityConfig {
                         // ── Everything else requires auth ──
                         .anyRequest().authenticated()
                 )
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())

@@ -51,9 +51,10 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    // ─────────────────────────────────────────────────────────
+    @Autowired
+    private TwoFactorService twoFactorService;
+
     //  REGISTER
-    // ─────────────────────────────────────────────────────────
     @Transactional
     public RegisterResponse registration(RegisterRequest request) {
 
@@ -91,11 +92,10 @@ public class UserService {
         );
     }
 
-    // ─────────────────────────────────────────────────────────
+
     //  LOGIN
-    // ─────────────────────────────────────────────────────────
     @Transactional
-    public AuthResponse verify(LoginRequest request) {
+    public Object verify(LoginRequest request) {
 
         if (loginAttemptService.isBlocked(request.getUsername())) {
             throw new RuntimeException("Account temporarily locked. Try again in 15 minutes.");
@@ -115,30 +115,68 @@ public class UserService {
 
         loginAttemptService.clearFailures(request.getUsername());
 
+        User user = userRepo.findByUsername(request.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        // ── 2FA CHECK ──
+        // If user has 2FA enabled → don't issue real tokens yet
+        // Instead issue a temporary token and ask frontend to show 2FA screen
+        if (user.isTwoFactorEnabled()) {
+            String tempToken = twoFactorService.createTempToken(request.getUsername());
+            return new TwoFactorLoginResponse(tempToken);
+            // Frontend receives: { requiresTwoFactor: true, tempToken: "uuid" }
+            // Frontend shows 2FA code input screen
+            // Frontend sends tempToken + 6-digit code to /api/auth/verify-2fa
+        }
+
+        // 2FA not enabled → normal login flow, issue tokens immediately
         String accessToken  = jwtService.generateAccessToken(request.getUsername());
         String refreshToken = jwtService.generateRefreshToken(request.getUsername());
 
         Instant expiresAt = Instant.now().plusMillis(jwtService.getRefreshTokenExpiry());
         refreshTokenRepo.save(new RefreshToken(refreshToken, request.getUsername(), expiresAt));
 
-        User user = userRepo.findByUsername(request.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        // ── FIX: Added id and role to AuthResponse ──
-        // Before: id was missing so frontend couldn't call /api/user/{id}
         return new AuthResponse(
-                user.getId(),
-                accessToken,
-                refreshToken,
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole()
+                user.getId(), accessToken, refreshToken,
+                user.getUsername(), user.getEmail(), user.getRole()
         );
     }
 
-    // ─────────────────────────────────────────────────────────
+    @Transactional
+    public AuthResponse verifyTwoFactorLogin(String tempToken, int code) {
+
+        // Get username from temp token (validates token is not expired)
+        String username = twoFactorService.getUsernameFromTempToken(tempToken);
+
+        // Verify the 6-digit code
+        boolean valid = twoFactorService.verifyCode(username, code);
+
+        if (!valid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "Invalid 2FA code. Please try again.");
+        }
+
+        // Code is correct — remove temp token (one-time use)
+        twoFactorService.removeTempToken(tempToken);
+
+        // Issue real JWT tokens
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        String accessToken  = jwtService.generateAccessToken(username);
+        String refreshToken = jwtService.generateRefreshToken(username);
+
+        Instant expiresAt = Instant.now().plusMillis(jwtService.getRefreshTokenExpiry());
+        refreshTokenRepo.save(new RefreshToken(refreshToken, username, expiresAt));
+
+        return new AuthResponse(
+                user.getId(), accessToken, refreshToken,
+                user.getUsername(), user.getEmail(), user.getRole()
+        );
+    }
+
+
     //  LOGOUT
-    // ─────────────────────────────────────────────────────────
     @Transactional
     public void logout(String accessToken, String refreshToken) {
         if (accessToken != null) {
@@ -152,9 +190,8 @@ public class UserService {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
+
     //  REFRESH TOKEN
-    // ─────────────────────────────────────────────────────────
     @Transactional
     public AuthResponse refresh(String refreshTokenStr) {
         Optional<RefreshToken> stored = refreshTokenRepo.findByToken(refreshTokenStr);
@@ -192,9 +229,9 @@ public class UserService {
         );
     }
 
-    // ─────────────────────────────────────────────────────────
+
     //  GET USER BY ID
-    // ─────────────────────────────────────────────────────────
+
     public UpdateResponse getUserById(Long id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -215,9 +252,9 @@ public class UserService {
         );
     }
 
-    // ─────────────────────────────────────────────────────────
+
     //  UPDATE USER
-    // ─────────────────────────────────────────────────────────
+
     @Transactional
     public UpdateResponse updateUser(Long id, @Valid UpdateUserRequest request) {
         User user = userRepo.findById(id)
@@ -252,9 +289,9 @@ public class UserService {
         );
     }
 
-    // ─────────────────────────────────────────────────────────
+
     //  GET USER'S PROJECTS
-    // ─────────────────────────────────────────────────────────
+
     public List<Project> userProjects(Long id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
