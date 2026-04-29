@@ -80,7 +80,7 @@ export default function LoginPage() {
       {/* Centered form */}
       <div className="flex-1 flex items-center justify-center px-4 relative">
 
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-75 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative w-full max-w-md">
 

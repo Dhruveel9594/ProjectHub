@@ -95,7 +95,7 @@ export default function TwoFactorLoginPage() {
       <div className="flex-1 flex items-center justify-center px-4">
 
         {/* Background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[250px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-62.5 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative w-full max-w-sm">
 

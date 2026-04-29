@@ -116,7 +116,7 @@ export default function RegisterPage() {
       <div className="flex-1 flex items-center justify-center px-4 py-10 relative">
 
         {/* Background glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-orange-500/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-75 bg-orange-500/8 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative w-full max-w-lg">
 
