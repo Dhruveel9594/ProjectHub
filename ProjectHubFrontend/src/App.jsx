@@ -11,8 +11,8 @@ import UserProfilePage      from "./pages/UserProfilePage";
 import BrowsePage           from "./pages/BrowsePage";
 import DepartmentsPage      from "./pages/DepartmentsPage";
 import ProjectDetailPage    from "./pages/ProjectDetailPage";
-import TwoFactorSetupPage from "./pages/Twofactorsetuppage";   // NEW
-import TwoFactorLoginPage from "./pages/Twofactorloginpage";    // NEW
+import TwoFactorSetupPage from "./pages/TwoFactorSetupPage";   // NEW
+import TwoFactorLoginPage from "./pages/TwoFactorLoginPage";    // NEW
 
 function ProtectedRoute({ children }) {
   const { isLoggedIn } = useAuth();
