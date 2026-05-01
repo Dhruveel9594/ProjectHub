@@ -1,6 +1,7 @@
 package com.example.ProjectHub.Controller;
 
 import com.example.ProjectHub.Service.TwoFactorService;
+import com.example.ProjectHub.dto.TwoFactorVerifyRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,13 +31,10 @@ public class TwoFactorController {
     // User enters 6-digit code from their authenticator app
     // Body: { "code": 123456 }
     @PostMapping("/setup/confirm")
-    public ResponseEntity<?> confirmSetup(@RequestBody Map<String, Integer> body) {
+    public ResponseEntity<?> confirmSetup(@RequestBody TwoFactorVerifyRequest request) {
         try {
-            Integer code = body.get("code");
-            if (code == null) {
-                return ResponseEntity.badRequest().body("Code is required");
-            }
-            twoFactorService.confirmSetup(code);
+            twoFactorService.confirmSetup(request.getCode());
+
             return ResponseEntity.ok(Map.of(
                     "message", "2FA enabled successfully",
                     "enabled", true
@@ -50,10 +48,10 @@ public class TwoFactorController {
     // User must provide current code to disable
     // Body: { "code": 123456 }
     @PostMapping("/disable")
-    public ResponseEntity<?> disable(@RequestBody Map<String, Integer> body) {
+    public ResponseEntity<?> disable(@RequestBody Map<String, String> body) {
         try {
-            Integer code = body.get("code");
-            if (code == null) {
+            String code = body.get("code");
+            if (code == null || code.isBlank()) {
                 return ResponseEntity.badRequest().body("Code is required");
             }
             twoFactorService.disableTwoFactor(code);

@@ -6,13 +6,13 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import LandingPage          from "./pages/LandingPage";
 import LoginPage            from "./pages/LoginPage";
 import RegisterPage         from "./pages/RegisterPage";
-import CreateProjectPage    from "./pages/CreateProjectPage";
+import CreateProjectPage from "./pages/CreateProjectPage";
 import UserProfilePage      from "./pages/UserProfilePage";
 import BrowsePage           from "./pages/BrowsePage";
 import DepartmentsPage      from "./pages/DepartmentsPage";
 import ProjectDetailPage    from "./pages/ProjectDetailPage";
-import TwoFactorSetupPage from "./pages/TwoFactorSetupPage";   // NEW
-import TwoFactorLoginPage from "./pages/TwoFactorLoginPage";    // NEW
+import TwoFactorSetupPage from "./pages/TwoFactorSetupPage"; // NEW
+import TwoFactorLoginPage from "./pages/TwoFactorLoginPage"; 
 
 function ProtectedRoute({ children }) {
   const { isLoggedIn } = useAuth();

@@ -4,13 +4,13 @@ package com.example.ProjectHub.dto;
 // Sent by frontend to verify 6-digit code
 // Used in both: setup verification + login verification
 public class TwoFactorVerifyRequest {
-    private int code; // 6-digit TOTP code from authenticator app
+    private String code; // 6-digit TOTP code from authenticator app
 
-    public int getCode() {
+    public String getCode() {
         return code;
     }
 
-    public void setCode(int code) {
+    public void setCode(String code) {
         this.code = code;
     }
 }

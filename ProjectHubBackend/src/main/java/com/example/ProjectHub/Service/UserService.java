@@ -123,7 +123,7 @@ public class UserService {
         // ── 2FA CHECK ──
         // If user has 2FA enabled → don't issue real tokens yet
         // Instead issue a temporary token and ask frontend to show 2FA screen
-        if (user.isTwoFactorEnabled()) {
+        if (user.isTwoFactorEnabled() && user.isTwoFactorVerified()) {
             String tempToken = twoFactorService.createTempToken(request.getUsername());
             return new TwoFactorLoginResponse(tempToken);
             // Frontend receives: { requiresTwoFactor: true, tempToken: "uuid" }
@@ -151,7 +151,7 @@ public class UserService {
         String username = twoFactorService.getUsernameFromTempToken(tempToken);
 
         // Verify the 6-digit code
-        boolean valid = twoFactorService.verifyCode(username, code);
+        boolean valid = twoFactorService.verifyCode(username, String.valueOf(code));
 
         if (!valid) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
