@@ -2,6 +2,7 @@ package com.example.ProjectHub.Repository;
 
 import com.example.ProjectHub.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -13,4 +14,7 @@ public interface UserRepo extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
+    @Query("SELECT COUNT(DISTINCT u.collegeName) FROM User u WHERE u.collegeName IS NOT NULL AND u.collegeName <> ''")
+    long countDistinctColleges();
+
 }
